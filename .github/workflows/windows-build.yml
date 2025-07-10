@@ -1,41 +1,29 @@
-name: Static MozJPEG Build for Windows
+name: Static MozJPEG Release
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    tags:
+      - 'v*'  # e.g. v1.0.0, v2.3.5
 
 jobs:
   build:
-    name: Build static cjpeg.exe
+    name: Build and Release MozJPEG static binaries
     runs-on: windows-latest
 
     steps:
-      - name: 📥 Checkout MozJPEG source
+      - name: 📥 Checkout source
         uses: actions/checkout@v4
 
       - name: 🛠 Install NASM
         run: choco install nasm -y
         shell: powershell
 
-      - name: 📦 Install vcpkg and static dependencies
+      - name: 📦 Install vcpkg + static dependencies
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg install zlib:x64-windows-static libpng:x64-windows-static
-          .\vcpkg\vcpkg integrate install
         shell: powershell
-
-      - name: 🧪 Debug vcpkg install structure
-        run: |
-          dir .\vcpkg\installed\x64-windows-static\lib
-          dir .\vcpkg\installed\x64-windows-static\include
-          dir .\vcpkg\installed\x64-windows-static\share\zlib
-        shell: cmd
-
-      - name: 🧪 Print environment for diagnostics
-        run: set
-        shell: cmd
 
       - name: 📂 Create build directory
         run: mkdir build
@@ -61,9 +49,10 @@ jobs:
         run: cmake --build build --config Release
         shell: cmd
 
-      - name: 📦 Upload build directory
-        uses: actions/upload-artifact@v4
+      - name: 📦 Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: mozjpeg-build
-          path: build/Release
-
+          files: |
+            build/Release/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
