@@ -26,6 +26,17 @@ jobs:
           .\vcpkg\vcpkg integrate install
         shell: powershell
 
+      - name: 🧪 Debug vcpkg install structure
+        run: |
+          dir .\vcpkg\installed\x64-windows-static\lib
+          dir .\vcpkg\installed\x64-windows-static\include
+          dir .\vcpkg\installed\x64-windows-static\share\zlib
+        shell: cmd
+
+      - name: 🧪 Print environment for diagnostics
+        run: set
+        shell: cmd
+
       - name: 📂 Create build directory
         run: mkdir build
 
