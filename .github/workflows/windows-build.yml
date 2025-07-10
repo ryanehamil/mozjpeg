@@ -1,4 +1,4 @@
-name: Static Build of MozJPEG on Windows
+name: Static MozJPEG Build for Windows
 
 on:
   push:
@@ -7,28 +7,28 @@ on:
 
 jobs:
   build:
-    name: Static cjpeg.exe Build
+    name: Build static cjpeg.exe
     runs-on: windows-latest
 
     steps:
-      - name: Checkout source
+      - name: 📥 Checkout MozJPEG source
         uses: actions/checkout@v4
 
-      - name: Install NASM
+      - name: 🛠 Install NASM
         run: choco install nasm -y
         shell: powershell
 
-      - name: Install vcpkg + static dependencies
+      - name: 📦 Install vcpkg and static libraries
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg install libpng:x64-windows-static zlib:x64-windows-static
         shell: powershell
 
-      - name: Create build directory
+      - name: 📂 Create build directory
         run: mkdir build
 
-      - name: Configure CMake (static build)
+      - name: ⚙️ Configure CMake (static, with tools)
         run: |
           cd build
           cmake .. ^
@@ -38,19 +38,21 @@ jobs:
             -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ^
             -DBUILD_SHARED_LIBS=OFF ^
             -DWITH_TURBOJPEG=OFF ^
-            -DWITH_JAVA=OFF
+            -DWITH_JAVA=OFF ^
+            -DENABLE_SHARED=OFF ^
+            -DENABLE_STATIC=ON ^
+            -DWITH_EXAMPLES=ON
         shell: cmd
 
-      - name: Build MozJPEG
+      - name: 🧱 Build project
         run: cmake --build build --config Release
         shell: cmd
 
-      - name: Verify binary size
-        run: |
-          Get-Item .\build\Release\cjpeg.exe | Select-Object Name, Length
+      - name: 🧪 Show final file size
+        run: Get-Item .\build\Release\cjpeg.exe | Select-Object Name, Length
         shell: powershell
 
-      - name: Upload statically-linked binary
+      - name: 📤 Upload statically-linked cjpeg.exe
         uses: actions/upload-artifact@v4
         with:
           name: cjpeg-static
