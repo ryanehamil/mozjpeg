@@ -1,14 +1,13 @@
-name: Build MozJPEG on Windows
+name: Static Build of MozJPEG on Windows
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build cjpeg.exe on Windows
+    name: Static cjpeg.exe Build
     runs-on: windows-latest
 
     steps:
@@ -19,35 +18,40 @@ jobs:
         run: choco install nasm -y
         shell: powershell
 
-      - name: Install vcpkg and dependencies
+      - name: Install vcpkg + static dependencies
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg install libpng zlib
+          .\vcpkg\vcpkg install libpng:x64-windows-static zlib:x64-windows-static
         shell: powershell
 
       - name: Create build directory
         run: mkdir build
 
-      - name: Configure with CMake
+      - name: Configure CMake (static build)
         run: |
           cd build
           cmake .. ^
             -G "Visual Studio 17 2022" ^
             -A x64 ^
             -DCMAKE_BUILD_TYPE=Release ^
-            -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake
+            -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ^
+            -DBUILD_SHARED_LIBS=OFF ^
+            -DWITH_TURBOJPEG=OFF ^
+            -DWITH_JAVA=OFF
         shell: cmd
 
-      - name: Build project
+      - name: Build MozJPEG
         run: cmake --build build --config Release
         shell: cmd
 
-      - name: Upload binaries
+      - name: Verify binary size
+        run: |
+          Get-Item .\build\Release\cjpeg.exe | Select-Object Name, Length
+        shell: powershell
+
+      - name: Upload statically-linked binary
         uses: actions/upload-artifact@v4
         with:
-          name: mozjpeg-windows
-          path: |
-            build/Release/cjpeg.exe
-            build/Release/djpeg.exe
-            build/Release/jpegtran.exe
+          name: cjpeg-static
+          path: build/Release/cjpeg.exe
