@@ -18,17 +18,18 @@ jobs:
         run: choco install nasm -y
         shell: powershell
 
-      - name: 📦 Install vcpkg + static zlib/libpng
+      - name: 📦 Install vcpkg + static dependencies
         run: |
           git clone https://github.com/microsoft/vcpkg.git
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg install zlib:x64-windows-static libpng:x64-windows-static
+          .\vcpkg\vcpkg integrate install
         shell: powershell
 
       - name: 📂 Create build directory
         run: mkdir build
 
-      - name: ⚙️ Configure CMake (static build with manual PNG/ZLIB)
+      - name: ⚙️ Configure CMake
         run: |
           cd build
           cmake .. ^
@@ -36,10 +37,6 @@ jobs:
             -A x64 ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ^
-            -DZLIB_LIBRARY="%cd%/../vcpkg/installed/x64-windows-static/lib/zlib.lib" ^
-            -DZLIB_INCLUDE_DIR="%cd%/../vcpkg/installed/x64-windows-static/include" ^
-            -DPNG_LIBRARY="%cd%/../vcpkg/installed/x64-windows-static/lib/libpng16.lib" ^
-            -DPNG_PNG_INCLUDE_DIR="%cd%/../vcpkg/installed/x64-windows-static/include" ^
             -DBUILD_SHARED_LIBS=OFF ^
             -DWITH_TURBOJPEG=OFF ^
             -DWITH_JAVA=OFF ^
@@ -47,7 +44,6 @@ jobs:
             -DENABLE_STATIC=ON ^
             -DWITH_EXAMPLES=ON
         shell: cmd
-
 
       - name: 🧱 Build project
         run: cmake --build build --config Release
