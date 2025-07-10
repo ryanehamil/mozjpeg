@@ -48,10 +48,7 @@ jobs:
             -A x64 ^
             -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_TOOLCHAIN_FILE=../vcpkg/scripts/buildsystems/vcpkg.cmake ^
-            -DZLIB_LIBRARY=../vcpkg/installed/x64-windows-static/lib/zlib.lib ^
-            -DZLIB_INCLUDE_DIR=../vcpkg/installed/x64-windows-static/include ^
-            -DPNG_LIBRARY=../vcpkg/installed/x64-windows-static/lib/libpng16.lib ^
-            -DPNG_PNG_INCLUDE_DIR=../vcpkg/installed/x64-windows-static/include ^
+            -DCMAKE_PREFIX_PATH="D:/a/mozjpeg/mozjpeg/vcpkg/installed/x64-windows-static" ^
             -DBUILD_SHARED_LIBS=OFF ^
             -DWITH_TURBOJPEG=OFF ^
             -DWITH_JAVA=OFF ^
