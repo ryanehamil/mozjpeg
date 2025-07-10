@@ -1,0 +1,42 @@
+name: Build MozJPEG on Windows
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build cjpeg.exe on Windows
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v3
+
+      - name: Install NASM
+        run: choco install nasm -y
+        shell: powershell
+
+      - name: Create build directory
+        run: mkdir build
+
+      - name: Run CMake to configure project
+        run: |
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+        shell: cmd
+
+      - name: Build project
+        run: cmake --build build --config Release
+        shell: cmd
+
+      - name: Upload compiled binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: mozjpeg-windows
+          path: |
+            build/Release/cjpeg.exe
+            build/Release/djpeg.exe
+            build/Release/jpegtran.exe
